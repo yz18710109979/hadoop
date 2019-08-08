@@ -24,6 +24,7 @@ public class WordCount {
 		Map<String, Integer> result = merge(map01,map02,map03,map04,map05);
 		System.out.println(result);
 	}
+	@SuppressWarnings("resource")
 	public static Map<String,Integer> readOneFile(String path) throws IOException{
 		Map<String,Integer> map = new HashMap<String, Integer>();
 		BufferedReader br = new BufferedReader(new FileReader(path));
