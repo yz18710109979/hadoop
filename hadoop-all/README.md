@@ -1,4 +1,121 @@
 hdfs
+1.命令:
+   hadoop fs :运行fs
+   hdfs dfs:运行fs的命令
+   
+hdfs dfsadmin  -report: 报告整个集群的状态
+hdfs getconf -confKey key:获取hdfs集群的配置信息
+
+1.ls
+  hdfs dfs -ls -R /:递归展示所有内容
+2.mkdir
+  hdfs dfs -mkdir -p /aa/bb/cc:级联创建
+3.put
+  hdfs dfs -get a.txt /:上传
+4.get
+  hdfs dfs -get /a.txt:下载
+5.copyFromLocal(从本地文件系统复制到hdfs文件系统)
+  等同于put
+6.copyToLocal(从hdfs文件系统复制到本地文件系统)
+  等同于get
+7.cp:复制(hdfs文件系统)
+8.mv:移动(hdfs文件系统)
+9.moveFromLocal
+10.moveToLocal
+11.getMerge: 合并下载
+   hdfs dfs -getmerge /merge/*.txt a.txt
+12.appendToFile:追加内容
+ hdfs dfs -appendToFile a.txt /merge/a.txt 
+13.cat:查看文件内容
+ hdfs dfs -cat /merge/a.txt 
+14.rm:删除
+  hdfs dfs -rm -r /merge
+15.rmdir:删除空目录
+16.text: 字符形式展示文件内容
+17.setrep:设置副本的数量
+   hdfs dfs -setrep 2 /a.tar.gz
+   
+#### 1.1 心跳机制
+master和slave之间通过ipc服务通信,通信有固定是时间周期(默认3秒),称之为心跳。
+dfs.heartbeat.interval:配置心跳时间
+​    slave超时时间的计算:
+	timeout = 2 * dfs.namenode.heartbeat.recheck-interval + 10 *  dfs.heartbeat.interval
+
+	默认值:  dfs.namenode.heartbeat.recheck-interval  300000(5 min)
+           dfs.heartbeat.interval 3 (3 sec)
+#### 1.2 安全模式
+1. safemode是namenode的一种状态(active/standby/safemode) 集群中的文件不能被操作(自我保护)
+2. 进入safemode的状况
+   dfs.namenode.safemode.threshold-pct(默认值0.999f)
+   block块丢失率达到0.1%
+3. 退出safemode
+   修复宕机的节点(推荐),自动退出
+   强制退出safemode(没有解决问题,有可能再次出现数据丢失)
+4. 为什么集群启动时会自动进入safemode,然后又自动退出?
+   block所在的datanode的信息存在于内存中,而不在磁盘中。
+       所以冷启动时,刚开始找不到block所在的节点的。
+hdfs dfsadmin -safemode get:获取当前的safemode状态
+hdfs dfsadmin -safemode enter:进入safemode状态
+hdfs dfsadmin -safemode leave:退出safemode状态
+hdfs dfsadmin -safemode wait:等待
+
+#### 1.3 副本存放策略
+1. 作用
+   分散冗余存储,保证可靠性和高效性。
+2. 副本存放
+   1. 原则
+     	 高可靠
+     	 考虑负载均衡
+      	考虑带宽
+   2. 如何存放
+      1. 尽可能存放在本地节点(datanode)
+      2. 存放在不同的机架的节点
+      3. 存放在和第二个副本同机架的不同节点
+3.修改副本数
+默认副本数是3
+	修改hdfs-site.xml
+	  dfs.replication
+	通过shell命令实现:
+	  hdfs dfs -setrep 2 文件
+#### 1.4 负载均衡
+	1.节点的磁盘利用率尽可能的均等
+​    2.如果出现节点宕机或者新添加节点,都可能导致出现负载不均衡(节点中负载时动态)
+​    3.如何实现负载均衡
+start-balancer.sh: 实现负载均衡,默认移动速度1m/s(出于带宽考虑,读写)
+hdfs dfsadmin -setBalanacerBandwidth 10485760: 设置默认的移动速度
+stat-balancer.sh -t 10%: 负载最高的节点和最低节点之间的数据差距比例不超过10%
+
+2.读写原理
+#### 2.1写流程
+1. client向namenode请求连接;
+2. namenode需要进行校验(是否有权限,是否存在等),响应逻辑切分,并且返回blk分配的节点列表;
+3. client会在dn的节点之间建立pipeline,同时每个块以packet形式传输(组建packet queue),每个packet有64k的大小,同时再传输512k后需要校验;
+4. 块的每个packet有client传输给在pipeline的第一个节点(缓存和data目录),由当前节点进行异步复制到pipeline的其他节点;
+5. pipeline上的节点在接收到数据之后会创建ack queue反馈给client;
+6. 等到所有的block在pipeline传输完毕则client会通知namenode更新元数据;
+7. 如果在pipeline中dn发生异常,则需要向nn重新申请dn节点;
+8. 写入成功的标志,client写入dfs.replication.min(默认1)个副本数则表示写入成功。
+#### 2.2读流程
+
+### 3.namenode
+#### 3.1 元数据管理
+* 内存元数据: 完整元数据
+* 磁盘元数据: 准完整元数据 (block所在datanode 信息)
+  > hadoopdata/name/current
+  * 镜像文件： fsimage_xxx
+    > 每间隔一小时将之前的历史操作日志进行合并生成镜像文件
+    hdfs oiv -i fsimage_0000000000000000232 -p XML -o fsimage.xml
+  * 历史日志文件: edits_xxx
+    > 默认每间隔一小时创建日志文件记录操作
+    生成xml文件:
+    hdfs oev -i edits_0000000000000000003-0000000000000000100 -o edits.xml
+  * 预写日志文件:  edits_inprogress_xxx
+  
+#### 3.2 checkpoint
+> 每间隔一定时间,2nn下载nn的镜像和日志文件,用于合并生成最新的镜像文件并返回,称之为checkpoint
+> 默认时间: 3600s
+> 默认操作: 1000000
+### 4.Datanode
 
 maprd
 maptask的并行度  面试

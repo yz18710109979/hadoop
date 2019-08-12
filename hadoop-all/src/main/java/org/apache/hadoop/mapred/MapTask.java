@@ -892,7 +892,9 @@ public class MapTask extends Task {
     int kvstart;            // marks origin of spill metadata
     int kvend;              // marks end of spill metadata
     int kvindex;            // marks end of fully serialized records
-
+    /**
+     * 环形缓冲区分界线
+     */
     int equator;            // marks origin of meta/serialization
     int bufstart;           // marks beginning of spill
     int bufend;             // marks beginning of collectable
@@ -900,7 +902,7 @@ public class MapTask extends Task {
     int bufindex;           // marks end of collected
     int bufvoid;            // marks the point where we should stop
                             // reading at the end of the buffer
-
+    //环形缓冲区
     byte[] kvbuffer;        // main output buffer
     private final byte[] b0 = new byte[0];
 
