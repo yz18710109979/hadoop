@@ -8,5 +8,7 @@
   <modules>
   	<module>hadoop-all</module>
     <module>hadoop-zookeeper</module>
+    <module>hadoop-spring-source</module>
+    <module>hadoop-spring-boot-source</module>
   </modules>
 </project>
