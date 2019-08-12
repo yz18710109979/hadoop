@@ -64,6 +64,6 @@ public class MaprdWordCount {
 		if(fs.exists(out)) fs.mkdirs(out);
 		FileOutputFormat.setOutputPath(job, out);
 		
-		job.waitForCompletion(true);
+		job.waitForCompletion(false);
 	}
 }
