@@ -1,11 +1,5 @@
 package com.example.hadoop.maprd;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -18,38 +12,39 @@ public class IpCount {
 
 	public static void main(String[] args) throws Exception {
 		//=============如果是小文件=========================
-		Future<Set<String>> set1 = executeService.submit(new Callable<Set<String>>() {
-			public Set<String> call() throws Exception {
-				Set<String> set1 = new HashSet<String>();
-				BufferedReader br1 = new BufferedReader(new FileReader("D:\\doc\\ip\\ip1.txt"));
-				String line1 = null;
-				while ((line1 = br1.readLine())!=null) {
-					set1.add(line1);
-				}
-				br1.close();
-				return set1;
-			}
-		});
-		System.out.println(set1.get());
-		Future<Set<String>> set2 = executeService.submit(new Callable<Set<String>>() {
-			public Set<String> call() throws Exception {
-				Set<String> set2 = new HashSet<String>();
-				BufferedReader br2 = new BufferedReader(new FileReader("D:\\doc\\ip\\ip2.txt"));
-				String line2 = null;
-				while ((line2 = br2.readLine())!=null) {
-					set2.add(line2);
-				}
-				br2.close();
-				return set2;
-			}
-		});
-		System.out.println(set2.get());
-		Set<String> resset = new HashSet<String>();
-		for (String s : set1.get()) {
-			if(set2.get().contains(s)) {
-				resset.add(s);
-			}
-		}
-		System.out.println(resset.toString());
+//		Future<Set<String>> set1 = executeService.submit(new Callable<Set<String>>() {
+//			public Set<String> call() throws Exception {
+//				Set<String> set1 = new HashSet<String>();
+//				BufferedReader br1 = new BufferedReader(new FileReader("D:\\doc\\ip\\ip1.txt"));
+//				String line1 = null;
+//				while ((line1 = br1.readLine())!=null) {
+//					set1.add(line1);
+//				}
+//				br1.close();
+//				return set1;
+//			}
+//		});
+//		System.out.println(set1.get());
+//		Future<Set<String>> set2 = executeService.submit(new Callable<Set<String>>() {
+//			public Set<String> call() throws Exception {
+//				Set<String> set2 = new HashSet<String>();
+//				BufferedReader br2 = new BufferedReader(new FileReader("D:\\doc\\ip\\ip2.txt"));
+//				String line2 = null;
+//				while ((line2 = br2.readLine())!=null) {
+//					set2.add(line2);
+//				}
+//				br2.close();
+//				return set2;
+//			}
+//		});
+//		System.out.println(set2.get());
+//		Set<String> resset = new HashSet<String>();
+//		for (String s : set1.get()) {
+//			if(set2.get().contains(s)) {
+//				resset.add(s);
+//			}
+//		}
+//		System.out.println(resset.toString());
+		//================================如果是大文件=========================
 	}
 }
