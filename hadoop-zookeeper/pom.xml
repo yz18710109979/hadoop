@@ -8,4 +8,14 @@
     <version>0.0.1</version>
   </parent>
   <artifactId>hadoop-zookeeper</artifactId>
+  
+  <dependencies>
+  	<!-- https://mvnrepository.com/artifact/org.apache.zookeeper/zookeeper -->
+	<dependency>
+	    <groupId>org.apache.zookeeper</groupId>
+	    <artifactId>zookeeper</artifactId>
+	    <version>3.5.5</version>
+	</dependency>
+  	
+  </dependencies>
 </project>
