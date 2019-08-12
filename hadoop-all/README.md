@@ -542,16 +542,6 @@ reduce：
 各个区域排名前5商品
 排序  销量倒叙
 分组  按照地区分
-	
-
-		
-
-	
-	
-
-
-
-
 reduce中的两个坑
 ----------------------------------------
 参数 参数1：一组key   参数2：一组中的所有value的迭代器
@@ -563,6 +553,224 @@ reduce中的两个坑
 	}
 	循环遍历的过程中 每一个values的值  都会对应一个与之对应的key的值   （同一个指针）
 	每次循环遍历的时候  相当于对  对象重新赋值
+combiner
+=============================================
+shuffle：分区  排序   分组   combiner
+默认没有  为什么？
+combiner 局部聚合组件  优化组件 
+作用：减少shuffle过程的数据量   减少reduce端接受的数据量   提升性能
+工作过程：
+	针对每一个maptask的输出结果  做一个局部聚合  聚合操作取决于 reduce端的操作逻辑
+	
+	结论：combiner 逻辑  === reducetask 逻辑
+	
+实现：
+maptask---combiner---reducetask
+combiner 接受数据 来自  maptask   输出数据 给reducetask 
+1）类继承 Reducer <maptask输出，reducetask的输入>
+	前两个泛型   == 后两个泛型
+2)重写 reduce 方法
+3)在job中指定
+
+
+没有使用combiner
+======================hadoop
+@@@@@hadoop-1
+@@@@@hadoop-1
+@@@@@hadoop-1
+@@@@@hadoop-1
+@@@@@hadoop-1
+@@@@@hadoop-1
+@@@@@hadoop-1
+@@@@@hadoop-1
+@@@@@hadoop-1
+@@@@@hadoop-1
+@@@@@hadoop-1
+@@@@@hadoop-1
+@@@@@hadoop-1
+@@@@@hadoop-1
+@@@@@hadoop-1
+@@@@@hadoop-1
+@@@@@hadoop-1
+@@@@@hadoop-1
+@@@@@hadoop-1
+@@@@@hadoop-1
+@@@@@hadoop-1
+@@@@@hadoop-1
+@@@@@hadoop-1
+@@@@@hadoop-1
+
+
+有combiner：
+======================hadoop
+@@@@@hadoop-3
+@@@@@hadoop-5
+@@@@@hadoop-7
+@@@@@hadoop-3
+@@@@@hadoop-6
+	
+	
+一般情况下  在实际开发过程中   使用Reducer的代替Combiner的代码  但是前提条件  Reducer的代码中 前两个泛型== 后两个泛型  如果泛型不一致 不可以替代的
+
+
+combiner之所以没有默认在shuffle中：
+	使用场景受限
+	可以使用的场景：
+		max 
+		min
+		sum 
+	不适用场景：
+		avg 直接求平均
+		如何做求avg   面试题
+			sum count 
+聚合：  max min   sum   avg 
+
+
+
+mapreduce shuflle  *****
+=============================================
+全流程
+maptask运行的类：
+	Mapper
+		run()
+MapOutputBuffer:
+	maptask的输出结果的
+	排序：
+	按照分区编号进行排序：
+		元数据中的分区编号进行的排序
+	按照map输出的key进行排序：
+		原始数据中记录的
+		
+		
+
+经典案例
+=================================================
+join  多表关联
+------------------------------
+统计 评分 男女 比例   
+ratings   users 关联  userid
+select * from ratings a join users b on a.userid=b.userid;
+
+
+reduce join :
+-----------------------------------------
+mapreduce实现：
+	map端能够同时读取两个数据
+	两个表  关联键相同的数据 必须分到一组 
+	map端：
+		1）面向split   识别数据源  对数据加标记
+		所有的map函数调用之前  获取一下文件名
+		setup()
+		2）对每一条数据打标记  value打标记
+		map函数
+		key：相同的关联键  IntWritable
+		value：剩下  标记  1）开始   2）不要太长
+			users   U+剩下
+			ratings  R+剩下
+	shuffle：
+		分区 
+		排序   数值  升序
+		分组	将相同的userid 
+	reduce端：
+		相同的userid的两个表的所有数据 
+		users
+		1---UF::1::10::48067
+		ratings
+		1---R1193::5::978300760
+		1---R661::3::978302109
+		1---R914::3::978301968
+		1---R3408::4::978300275
+		1---R2355::5::978824291
+		只需要关联  不同表的数据  就得能够识别数据来源
+
+	
+	
+	
+数据倾斜：在分布式并行计算   当某一个task的计算任务的数据量很大   其他task的数据量很小 这时候计算过程中 就会产生数据倾斜    
+一旦产生数据倾斜  极大的降低计算性能
+大数据不怕数据量大   怕数据倾斜
+
+如果代码中出现数据倾斜  现象：
+	map 100%    reduce   0%
+	map 100%    reduce   40%
+	map 100%    reduce   95%
+	map 100%    reduce   95%
+	map 100%    reduce   95%
+	map 100%    reduce   95%
+	map 100%    reduce   95%
+	。。。。。。。
+	
+reduce join 有可能缺陷问题：数据倾斜  
+mr中数据倾斜   本质   分区中数据分配极大不均匀
+
+mapreduce 程序中  有reduce 有可能产生数据倾斜：
+	combiner  很好的数据倾斜的处理方式  不能绝对避免
+	调整分区算法
+
+mapjoin
+---------------------------------------------
+优势： 有效避免join 数据倾斜
+
+整个join 过程在map端发生  只需要maptask 不需要reducetask 
+如何实现：
+	map（） 一行调用一次
+	
+	在map端只读取一个文件（大文件）  另一个文件  加载在每一个maptask运行节点的内存中（小文件）
+	每当map端进行读取一个文件的一行  就去内存中 找是否可以匹配另一个文件
+
+实现：
+1）将小文件加载到本地缓存（磁盘）中
+job.addCacheFile(uri);  将制定的路径的文件  加载到每一个maptask的运行节点上
+
+2）setup  中
+定义一个流
+定义一个集合
+流开始读取   放在集合中
+
+3）map 
+读取大文件   每次读取一行  和内存集合中的数据做关联
+关联完成 写出hdfs 
+
+注意：
+只有maptask 时候  将reducetask设置0
+否则默认运行一个   Reducer  
+job.setNumReduceTasks(0); 
+输出结果：
+part-m-00000
+
+本地缓存：
+/home/hadoop/data/hadoopdata/nm-local-dir/filecache/10
+
+
+map join 缺陷：
+	缓存中的表不可过大
+	适用于  大*小    小*小 
+	但是  大*大  不适用
+	
+
+
+倒排索引   
+-------------------------------------
+索引的
+1.txt   2.txt    3.txt   4.txt 
+正向索引
+	一个文件中  包含了哪些内容
+	1.txt    hello   hadoop  hi 
+	2.TXT    hello   hadoop  tom
+	优点： 通过文件  找当前文件内容
+	
+	
+反向索引
+	需求：通过一个单词   找哪一些文件中包含这个单词
+	某一个单词在一组文档中位置
+	hadoop   1.txt,1   2.txt,3
+案例：
+	
+
+
+
+输入  输出    了解  sqoop
+==============================
 
 
 yarn

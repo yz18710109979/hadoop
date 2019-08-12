@@ -1,0 +1,26 @@
+1）安装mysql并配置好mysql的用户名密码
+	yum安装mysql
+		1）配置yum源
+		在/mnt创建目录cdrom
+		mkdir cdrom
+		挂载
+		sudo mount -t iso9660 -o ro /dev/cdrom /mnt/cdrom/
+		配置本地的yum源
+		 sudo rename .repo .repo.bak * 
+		 sudo cp CentOS-Media.repo.bak CentOS-Media.repo  
+		 
+		 sudo yum clean all
+		 yum repolist
+		 
+		2)安装mysql
+		sudo yum install -y mysql-server
+		sudo service mysqld start
+		3)修改mysql的用户名  密码
+		use mysql;
+		delete from user where user='';
+		update user set host='%' where host='localhost';
+		update user set password=PASSWORD('123456') where user='root';
+		flush privileges;
+		
+		退出mysql
+		重启mysql服务
