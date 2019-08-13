@@ -270,19 +270,22 @@ CREATE [EXTERNAL] TABLE [IF NOT EXISTS] table_name
     3）创建一个分区表
     分区字段   查询业务   经常过滤的字段  生产上 日期
     分区字段   dept 
-    create table if not exists stu_ptn(id int,name string,sex string,age int) partitioned by (dept string) row format delimited fields terminated by ",";
+    create table if not exists stu_ptn(id int,name string,sex string,age int) 
+    partitioned by (dept string) row format delimited fields terminated by ",";
 
 
     4）创建一个分桶表
     分桶字段  age  关联键     分桶个数   3
 
-    create table if not exists stu_buk(id int,name string,sex string,age int,dept string) clustered by (age) sorted by (age desc) into 3 buckets row format delimited fields terminated by ",";
+    create table if not exists stu_buk(id int,name string,sex string,age int,dept string) 
+    clustered by (age) sorted by (age desc) into 3 buckets 
+    row format delimited fields terminated by ",";
 
     5）表复制
     like 
     create table tbname like stu_managed;
     create external table stu01 like stu_managed;
-    表复制   只复制表结构(字段)  不会复制表属性
+           表复制   只复制表结构(字段)  不会复制表属性
 
 
     6）ctas语句建表
