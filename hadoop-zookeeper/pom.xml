@@ -1,21 +1,37 @@
 <?xml version="1.0"?>
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <groupId>com.example.hadoop</groupId>
-    <artifactId>hadoop</artifactId>
-    <version>0.0.1</version>
-  </parent>
-  <artifactId>hadoop-zookeeper</artifactId>
-  
-  <dependencies>
-  	<!-- https://mvnrepository.com/artifact/org.apache.zookeeper/zookeeper -->
-	<dependency>
-	    <groupId>org.apache.zookeeper</groupId>
-	    <artifactId>zookeeper</artifactId>
-	    <version>3.5.5</version>
-	</dependency>
-  	
-  </dependencies>
+<project
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+	xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.example.hadoop</groupId>
+		<artifactId>hadoop</artifactId>
+		<version>0.0.1</version>
+	</parent>
+	<artifactId>hadoop-zookeeper</artifactId>
+
+	<dependencies>
+		<!-- https://mvnrepository.com/artifact/org.apache.zookeeper/zookeeper -->
+		<dependency>
+			<groupId>org.apache.zookeeper</groupId>
+			<artifactId>zookeeper</artifactId>
+			<version>3.5.5</version>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/org.apache.curator/curator-framework -->
+		<dependency>
+			<groupId>org.apache.curator</groupId>
+			<artifactId>curator-framework</artifactId>
+			<version>4.2.0</version>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/org.apache.curator/curator-recipes -->
+		<dependency>
+			<groupId>org.apache.curator</groupId>
+			<artifactId>curator-recipes</artifactId>
+			<version>4.2.0</version>
+		</dependency>
+
+	</dependencies>
 </project>
