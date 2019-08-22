@@ -11,5 +11,6 @@
     <module>hadoop-spring-source</module>
     <module>hadoop-spring-boot-source</module>
     <module>hadoop-hive</module>
+    <module>hadoop-hbase</module>
   </modules>
 </project>
